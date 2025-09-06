@@ -3,49 +3,46 @@
 
 #define SIZE 100
 
-// ---------- Queue Implementation ----------
-struct Queue {
+// Queue structure
+typedef struct {
     int arr[SIZE];
     int front, rear;
-};
+} Queue;
 
 // Initialize queue
-void init(struct Queue* q) {
-    q->front = q->rear = -1;
+void initQueue(Queue *q) {
+    q->front = -1;
+    q->rear = -1;
 }
 
-// Check empty
-int isEmpty(struct Queue* q) {
+// Check if queue is empty
+int isEmpty(Queue *q) {
     return (q->front == -1);
 }
 
-// Check full
-int isFull(struct Queue* q) {
+// Check if queue is full
+int isFull(Queue *q) {
     return (q->rear == SIZE - 1);
 }
 
 // Enqueue
-void enqueue(struct Queue* q, int value) {
+void enqueue(Queue *q, int x) {
     if (isFull(q)) {
-        printf("Queue Overflow!\n");
+        printf("Queue Overflow\n");
         return;
     }
-    if (isEmpty(q)) {
-        q->front = q->rear = 0;
-    } else {
-        q->rear++;
-    }
-    q->arr[q->rear] = value;
+    if (q->front == -1) q->front = 0;
+    q->arr[++q->rear] = x;
 }
 
 // Dequeue
-int dequeue(struct Queue* q) {
+int dequeue(Queue *q) {
     if (isEmpty(q)) {
-        printf("Queue Underflow!\n");
+        printf("Queue Underflow\n");
         return -1;
     }
     int val = q->arr[q->front];
-    if (q->front == q->rear) {  // only one element
+    if (q->front == q->rear) {
         q->front = q->rear = -1;
     } else {
         q->front++;
@@ -53,58 +50,67 @@ int dequeue(struct Queue* q) {
     return val;
 }
 
-// ---------- Stack using Two Queues ----------
-struct Stack {
-    struct Queue q1, q2;
-};
-
-// Initialize stack
-void initStack(struct Stack* s) {
-    init(&s->q1);
-    init(&s->q2);
+// Peek (front element)
+int peek(Queue *q) {
+    if (isEmpty(q)) return -1;
+    return q->arr[q->front];
 }
 
-// Costly push
-void push(struct Stack* s, int x) {
-    // Step 1: Enqueue new element into q2
+// Stack using two queues
+typedef struct {
+    Queue q1, q2;
+} Stack;
+
+// Initialize stack
+void initStack(Stack *s) {
+    initQueue(&s->q1);
+    initQueue(&s->q2);
+}
+
+// Push operation (costly enqueue)
+void push(Stack *s, int x) {
     enqueue(&s->q2, x);
 
-    // Step 2: Move all elements from q1 → q2
+    // Move all elements from q1 to q2
     while (!isEmpty(&s->q1)) {
         enqueue(&s->q2, dequeue(&s->q1));
     }
 
-    // Step 3: Swap q1 and q2
-    struct Queue temp = s->q1;
+    // Swap q1 and q2
+    Queue temp = s->q1;
     s->q1 = s->q2;
     s->q2 = temp;
-
-    printf("%d pushed\n", x);
 }
 
-// Pop is simple (O(1))
-void pop(struct Stack* s) {
+// Pop operation
+int pop(Stack *s) {
     if (isEmpty(&s->q1)) {
-        printf("Stack Underflow!\n");
-        return;
+        printf("Stack Underflow\n");
+        return -1;
     }
-    printf("%d popped\n", dequeue(&s->q1));
+    return dequeue(&s->q1);
 }
 
-// Display stack
-void display(struct Stack* s) {
-    if (isEmpty(&s->q1)) {
-        printf("Stack is empty\n");
-        return;
-    }
-    printf("Stack elements (top to bottom): ");
-    for (int i = s->q1.front; i <= s->q1.rear; i++) {
-        printf("%d ", s->q1.arr[i]);
-    }
-    printf("\n");
+// Top operation
+int top(Stack *s) {
+    return peek(&s->q1);
 }
 
-// ---------- Main ----------
+// Driver code
 int main() {
-    struct Stack s;
-    initStack(&s
+    Stack s;
+    initStack(&s);
+
+    push(&s, 10);
+    push(&s, 20);
+    push(&s, 30);
+
+    printf("Top element: %d\n", top(&s));   // 30
+    printf("Popped: %d\n", pop(&s));        // 30
+    printf("Top element: %d\n", top(&s));   // 20
+    printf("Popped: %d\n", pop(&s));        // 20
+    printf("Popped: %d\n", pop(&s));        // 10
+    printf("Popped: %d\n", pop(&s));        // Underflow
+
+    return 0;
+}
